@@ -1,0 +1,13 @@
+services:
+  signaldesk:
+    build: .
+    image: signaldesk:latest
+    container_name: signaldesk
+    env_file: .env
+    ports:
+      # Дашборд доступен только с этого компьютера: http://localhost:8000
+      - "127.0.0.1:8000:8000"
+    volumes:
+      # Отчёты и настройки (config.yaml) сохраняются между перезапусками
+      - ./data:/data
+    restart: unless-stopped
