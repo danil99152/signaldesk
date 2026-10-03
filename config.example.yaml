@@ -1,0 +1,30 @@
+# Скопируйте в config.yaml и отредактируйте. Все секции необязательны:
+# если секция не указана, используются значения по умолчанию из market_analyst/sources.py.
+
+# Сколько часов новостей учитывать
+lookback_hours: 24
+
+# Сколько ссылок отбирает быстрая модель для полного чтения
+max_articles: 25
+
+# Ваш портфель / список наблюдения. Тикеры Yahoo Finance для глобального рынка,
+# тикеры Мосбиржи (TQBR) для российского.
+watchlist:
+  global: [SPY, QQQ, AAPL, NVDA, MSFT, GC=F, BZ=F, BTC-USD]
+  russia: [IMOEX, SBER, GAZP, LKOH, YDEX, GMKN, ROSN]
+
+# Телеграм-каналы (публичные). Можно указывать имя, @имя или ссылку t.me/имя.
+# Читаются через веб-превью t.me/s/<канал>, API-ключи не нужны.
+telegram_channels: []
+#  - markettwits
+#  - @tb_invest_official
+#  - https://t.me/russianmacro
+
+# Дополнительные RSS-ленты (добавляются к встроенным)
+extra_feeds: []
+#  - name: My Feed
+#    url: https://example.com/rss
+#    region: global   # global | russia
+
+# Отключить встроенные ленты по имени
+disabled_feeds: []
