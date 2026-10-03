@@ -1,18 +1,18 @@
 from datetime import datetime, timedelta, timezone
 
-from market_analyst.analyst import mentioned_tickers, pick_balanced
-from market_analyst.llm import extract_json
-from market_analyst.market_data import _changes
-from market_analyst.models import ArticleDigest, NewsItem
-from market_analyst.report import render_markdown
-from market_analyst.scraper import (
+from signaldesk.analyst import mentioned_tickers, pick_balanced
+from signaldesk.llm import extract_json
+from signaldesk.market_data import _changes
+from signaldesk.models import ArticleDigest, NewsItem
+from signaldesk.report import render_markdown
+from signaldesk.scraper import (
     _channel_name,
     dedupe,
     filter_recent,
     parse_feed,
     parse_telegram_page,
 )
-from market_analyst.sources import Feed
+from signaldesk.sources import Feed
 
 RSS = b"""<?xml version="1.0"?><rss version="2.0"><channel><title>t</title>
 <item><title>Fed holds rates</title><link>https://ex.com/a</link>

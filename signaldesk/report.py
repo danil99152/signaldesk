@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
 
 from .market_data import Quote
 from .models import ArticleDigest
@@ -120,17 +119,3 @@ def render_markdown(
         "",
     ]
     return "\n".join(lines)
-
-
-def save_report(markdown: str, analysis: dict, out_dir: str | Path = "reports") -> Path:
-    import json
-
-    out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now().strftime("%Y%m%d_%H%M")
-    md_path = out / f"report_{stamp}.md"
-    md_path.write_text(markdown, encoding="utf-8")
-    (out / f"report_{stamp}.json").write_text(
-        json.dumps(analysis, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-    return md_path

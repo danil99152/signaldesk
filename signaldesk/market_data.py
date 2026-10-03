@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import date, timedelta
 
 import httpx
@@ -27,6 +27,7 @@ class Quote:
     change_1w: float | None
     change_1m: float | None
     currency: str = ""
+    history: list[float] = field(default_factory=list)  # дневные закрытия за ~месяц
 
     def line(self) -> str:
         def pct(v: float | None) -> str:
@@ -58,7 +59,10 @@ async def yahoo_quote(client: httpx.AsyncClient, ticker: str) -> Quote | None:
         if not closes:
             return None
         d1, w1, m1 = _changes(closes)
-        return Quote(ticker, "global", closes[-1], d1, w1, m1, result["meta"].get("currency", ""))
+        return Quote(
+            ticker, "global", closes[-1], d1, w1, m1,
+            result["meta"].get("currency", ""), closes[-22:],
+        )
     except Exception as exc:
         log.warning("Yahoo %s: %s", ticker, exc)
         return None
@@ -81,7 +85,10 @@ async def moex_quote(client: httpx.AsyncClient, ticker: str) -> Quote | None:
         if not closes:
             return None
         d1, w1, m1 = _changes(closes)
-        return Quote(ticker, "russia", closes[-1], d1, w1, m1, "pts" if market == "index" else "RUB")
+        return Quote(
+            ticker, "russia", closes[-1], d1, w1, m1,
+            "pts" if market == "index" else "RUB", closes[-22:],
+        )
     except Exception as exc:
         log.warning("MOEX %s: %s", ticker, exc)
         return None

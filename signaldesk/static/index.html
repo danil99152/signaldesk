@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SignalDesk</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path d='M3 17l5-6 4 3 7-9' fill='none' stroke='%232a78d6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 3 7-9"/><path d="M15 5h4v4"/></svg>
+    SignalDesk
+  </div>
+  <nav>
+    <button data-tab="dashboard" class="active">Дашборд</button>
+    <button data-tab="history">История</button>
+    <button data-tab="settings">Настройки</button>
+  </nav>
+  <div class="spacer"></div>
+  <div class="run-controls">
+    <select id="run-market" aria-label="Рынок">
+      <option value="all">Оба рынка</option>
+      <option value="global">Глобальный</option>
+      <option value="russia">Российский</option>
+    </select>
+    <label class="small muted">часов <input id="run-hours" type="number" min="1" max="168"></label>
+    <label class="small muted">статей <input id="run-articles" type="number" min="4" max="80"></label>
+    <button id="run-btn" class="btn primary">Запустить анализ</button>
+    <button id="theme-btn" class="icon-btn" title="Тема" aria-label="Переключить тему">◐</button>
+  </div>
+</header>
+
+<main>
+  <div id="key-banner" class="banner warn hidden">
+    Не задан <b>OPENROUTER_API_KEY</b>. Добавьте его в файл <code>.env</code> и перезапустите контейнер:
+    <code>docker compose up -d</code>.
+  </div>
+
+  <div id="progress" class="card progress hidden">
+    <div class="card-head"><h2 id="progress-title">Идёт анализ…</h2><span class="spacer"></span><span id="progress-time" class="muted small"></span></div>
+    <div class="steps" id="progress-steps"></div>
+    <div class="log" id="progress-log"></div>
+  </div>
+  <div id="error-banner" class="banner error hidden"></div>
+
+  <section id="tab-dashboard"></section>
+  <section id="tab-history" class="hidden"></section>
+  <section id="tab-settings" class="hidden"></section>
+</main>
+<div id="toast" class="toast"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

@@ -13,6 +13,18 @@ DEFAULT_REASONING_MODEL = "deepseek/deepseek-r1"
 DEFAULT_FAST_MODEL = "google/gemini-2.5-flash-lite"
 
 
+class ConfigError(RuntimeError):
+    pass
+
+
+def data_dir() -> Path:
+    return Path(os.getenv("SIGNALDESK_DATA", "data"))
+
+
+def config_path() -> Path:
+    return Path(os.getenv("SIGNALDESK_CONFIG", "config.yaml"))
+
+
 @dataclass
 class Settings:
     api_key: str
@@ -21,25 +33,35 @@ class Settings:
     lookback_hours: int = 24
     max_articles: int = 25
     feeds: list[Feed] = field(default_factory=lambda: list(DEFAULT_FEEDS))
+    disabled_feeds: list[str] = field(default_factory=list)
     telegram_channels: list[str] = field(default_factory=list)
     watchlist_global: list[str] = field(default_factory=list)
     watchlist_russia: list[str] = field(default_factory=list)
 
 
-def load_settings(config_path: str | Path | None = None) -> Settings:
+def read_config_file(path: str | Path | None = None) -> dict:
+    path = Path(path) if path else config_path()
+    if not path.exists():
+        return {}
+    return yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+
+
+def write_config_file(data: dict, path: str | Path | None = None) -> None:
+    path = Path(path) if path else config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(yaml.safe_dump(data, allow_unicode=True, sort_keys=False), encoding="utf-8")
+
+
+def load_settings(path: str | Path | None = None, require_key: bool = True) -> Settings:
     load_dotenv()
     api_key = os.getenv("OPENROUTER_API_KEY", "")
-    if not api_key:
-        raise SystemExit("Не задан OPENROUTER_API_KEY (см. .env.example)")
+    if require_key and not api_key:
+        raise ConfigError("Не задан OPENROUTER_API_KEY (см. .env.example)")
+    if path and not Path(path).exists():
+        raise ConfigError(f"Файл конфигурации не найден: {path}")
 
-    data: dict = {}
-    path = Path(config_path) if config_path else Path("config.yaml")
-    if path.exists():
-        data = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
-    elif config_path:
-        raise SystemExit(f"Файл конфигурации не найден: {path}")
-
-    disabled = set(data.get("disabled_feeds") or [])
+    data = read_config_file(path)
+    disabled = list(data.get("disabled_feeds") or [])
     feeds = [f for f in DEFAULT_FEEDS if f.name not in disabled]
     for extra in data.get("extra_feeds") or []:
         feeds.append(Feed(extra["name"], extra["url"], extra.get("region", "global")))
@@ -47,11 +69,12 @@ def load_settings(config_path: str | Path | None = None) -> Settings:
     watchlist = data.get("watchlist") or {}
     return Settings(
         api_key=api_key,
-        reasoning_model=os.getenv("REASONING_MODEL", DEFAULT_REASONING_MODEL),
-        fast_model=os.getenv("FAST_MODEL", DEFAULT_FAST_MODEL),
+        reasoning_model=os.getenv("REASONING_MODEL") or DEFAULT_REASONING_MODEL,
+        fast_model=os.getenv("FAST_MODEL") or DEFAULT_FAST_MODEL,
         lookback_hours=int(data.get("lookback_hours", 24)),
         max_articles=int(data.get("max_articles", 25)),
         feeds=feeds,
+        disabled_feeds=disabled,
         telegram_channels=list(data.get("telegram_channels") or []),
         watchlist_global=list(watchlist.get("global") or []),
         watchlist_russia=list(watchlist.get("russia") or []),

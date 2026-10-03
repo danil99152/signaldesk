@@ -17,14 +17,18 @@ class LLMError(RuntimeError):
     pass
 
 
+class FatalLLMError(LLMError):
+    """Ошибка, которую нет смысла повторять (неверный ключ, модель, нет баланса)."""
+
+
 class OpenRouter:
     def __init__(self, api_key: str, timeout: float = 600.0):
         self._client = httpx.AsyncClient(
             timeout=timeout,
             headers={
                 "Authorization": f"Bearer {api_key}",
-                "HTTP-Referer": "https://github.com/market-analyst",
-                "X-Title": "Market Analyst",
+                "HTTP-Referer": "https://github.com/signaldesk",
+                "X-Title": "SignalDesk",
             },
         )
         self.usage = {"prompt_tokens": 0, "completion_tokens": 0}
@@ -59,7 +63,7 @@ class OpenRouter:
                     raise LLMError(f"HTTP {resp.status_code}: {resp.text[:300]}")
                 if resp.status_code >= 400:
                     # Ошибки 4xx (неверный ключ/модель) повторять бессмысленно
-                    raise SystemExit(f"OpenRouter {resp.status_code}: {resp.text[:500]}")
+                    raise FatalLLMError(f"OpenRouter {resp.status_code}: {resp.text[:500]}")
                 data = resp.json()
                 if "error" in data:
                     raise LLMError(str(data["error"]))
@@ -69,6 +73,8 @@ class OpenRouter:
                 if not content.strip():
                     raise LLMError("пустой ответ модели")
                 return content
+            except FatalLLMError:
+                raise
             except (httpx.HTTPError, LLMError, KeyError, ValueError) as exc:
                 last_exc = exc
                 wait = 2 ** (attempt + 1)
